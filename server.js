@@ -9,7 +9,39 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 
 const games = {}; // { roomId: { players: [], started: false, roles: {} } }
-const LOCATIONS = ['Praia', 'Submarino', 'Circo', 'Base Espacial', 'Restaurante'];
+const LOCATIONS = [
+  "Avião",
+  "Parque de diversões",
+  "Banco",
+  "Praia",
+  "Baile de máscaras",
+  "Cassino",
+  "Circo",
+  "Festa da empresa",
+  "Exército de cruzados",
+  "Day spa",
+  "Embaixada",
+  "Hospital",
+  "Hotel",
+  "Base militar",
+  "Estúdio de cinema",
+  "Casa noturna",
+  "Transatlântico",
+  "Trem de passageiros",
+  "Navio pirata",
+  "Estação polar",
+  "Delegacia",
+  "Restaurante",
+  "Escola",
+  "Oficina",
+  "Estação espacial",
+  "Submarino",
+  "Supermercado",
+  "Teatro",
+  "Universidade",
+  "Zoológico"
+];
+
 
 app.get('/', (req, res) => {
   const roomId = uuidv4().slice(0, 6);
