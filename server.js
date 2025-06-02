@@ -92,19 +92,19 @@ const LOCATIONS = [
 ];
 
 const ROLES_BY_LOCATION = {
-  "Avião": ["Piloto", "Comissário(a)", "Passageiro(a)", "Co-piloto"],
-  "Praia": ["Salva-vidas", "Banhista", "Surfista", "Vendedor ambulante"],
+  "Avião": ["Piloto", "Aeromoça/Aeromoço", "Passageiro(a)", "Co-piloto"],
+  "Praia": ["Salva-vidas", "Banhista", "Surfista", "Vendedor de comida"],
   "Parque de diversões": ["Palhaço", "Operador de brinquedo", "Visitante", "Vendedor de pipoca"],
-  "Escola": ["Professor", "Aluno", "Diretor", "Bibliotecário"],
-  "Supermercado": ["Caixa", "Cliente", "Repositor", "Gerente"],
+  "Escola": ["Professor", "Aluno", "Diretor", "Aluno"],
+  "Supermercado": ["Caixa", "Cliente", "Pessoa da limpeza", "Cliente"],
   "Zoológico": ["Zelador de animais", "Veterinário", "Visitante", "Guia"],
   "Hospital": ["Médico", "Enfermeiro", "Paciente", "Visitante"],
-  "Restaurante": ["Chef", "Garçom", "Cliente", "Gerente"],
-  "Parquinho": ["Criança", "Pai/Mãe", "Brincalhão(a)", "Cuidador(a)"],
-  "Cinema": ["Bilheteiro", "Cliente", "Vendedor de pipoca", "Lanterninha"],
-  "Fazenda": ["Fazendeiro", "Vaca", "Cavalo", "Tratorista"],
-  "Casa": ["Mamãe", "Papai", "Criança", "Pet"],
-  "Biblioteca": ["Bibliotecário(a)", "Leitor(a)", "Criança", "Contador(a) de histórias"]
+  "Restaurante": ["Chef que prepara a comida", "Garçom", "Cliente", "Cliente"],
+  "Parquinho": ["Criança", "Pai/Mãe", "Criança", "Vendedor de pipoca"],
+  "Cinema": ["Pessoa que vende ingresso", "Cliente", "Vendedor de pipoca", "Cliente"],
+  "Fazenda": ["Fazendeiro", "Criança", "Cavalo", "Vaca/Boi"],
+  "Casa": ["Mamãe", "Papai", "Criança", "Cachorro"],
+  "Biblioteca": ["Pessoa que trabalha na biblioteca", "Leitor", "Criança", "Contador(a) de histórias"]
 };
 
 
