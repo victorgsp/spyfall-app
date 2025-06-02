@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sala <%= roomId %></title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <h1>Sala: <%= roomId %></h1>
+  <ul id="players"></ul>
+  <button id="readyBtn">Pronto</button>
+  <button id="startBtn" style="display:none;">Iniciar Jogo</button>
+  <div id="roleInfo"></div>
+
+  <script>
+    const socket = io();
+    const roomId = '<%= roomId %>';
+    socket.emit('join-room', roomId);
+
+    const playersEl = document.getElementById('players');
+    const startBtn = document.getElementById('startBtn');
+    const readyBtn = document.getElementById('readyBtn');
+    const roleInfo = document.getElementById('roleInfo');
+
+    socket.on('players-updated', ({ players, owner }) => {
+      playersEl.innerHTML = players.map(p => `<li>${p === socket.id ? 'Você' : p}</li>`).join('');
+      if (owner === socket.id) {
+        startBtn.style.display = 'inline';
+      }
+    });
+
+    startBtn.onclick = () => {
+      socket.emit('start-game', roomId);
+    };
+
+    socket.on('game-started', () => {
+      readyBtn.style.display = 'none';
+      startBtn.style.display = 'none';
+    });
+
+    socket.on('role-assigned', ({ role, location }) => {
+      if (role === 'spy') {
+        roleInfo.innerText = 'Você é o ESPIÃO. Descubra o local!';
+      } else {
+        roleInfo.innerText = `Local: ${location}`;
+      }
+    });
+  </script>
+</body>
+</html>
