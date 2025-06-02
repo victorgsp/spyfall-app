@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
 app.get('/:roomId', (req, res) => {
   const { roomId } = req.params;
   if (!games[roomId]) {
-    games[roomId] = { players: [], started: false, roles: {} };
+    games[roomId] = { players: [], started: false, ready: {}, roles: {} };
   }
   res.render('lobby', { roomId });
 });
@@ -63,20 +63,36 @@ io.on('connection', (socket) => {
 
     if (!game.players.includes(socket.id)) {
       game.players.push(socket.id);
+      game.ready[socket.id] = false;
     }
 
     io.to(roomId).emit('players-updated', {
       players: game.players,
-      owner: game.players[0],
+      ready: game.ready,
     });
+  });
+
+  socket.on('player-ready', (roomId) => {
+    const game = games[roomId];
+    if (game) {
+      game.ready[socket.id] = true;
+
+      const allReady = game.players.every(playerId => game.ready[playerId]);
+      io.to(roomId).emit('players-updated', {
+        players: game.players,
+        ready: game.ready,
+        allReady
+      });
+    }
   });
 
   socket.on('start-game', (roomId) => {
     const game = games[roomId];
-    if (!game.started) {
-      game.started = true;
+    if (game && !game.started) {
+      const allReady = game.players.every(playerId => game.ready[playerId]);
+      if (!allReady) return; // Bloqueia início se alguém não estiver pronto
 
-      // Sorteia espião
+      game.started = true;
       const spyIndex = Math.floor(Math.random() * game.players.length);
       const location = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
 
@@ -96,11 +112,13 @@ io.on('connection', (socket) => {
 
   socket.on('disconnecting', () => {
     for (const roomId of socket.rooms) {
-      if (games[roomId]) {
-        games[roomId].players = games[roomId].players.filter(id => id !== socket.id);
+      const game = games[roomId];
+      if (game) {
+        game.players = game.players.filter(id => id !== socket.id);
+        delete game.ready[socket.id];
         io.to(roomId).emit('players-updated', {
-          players: games[roomId].players,
-          owner: games[roomId].players[0],
+          players: game.players,
+          ready: game.ready,
         });
       }
     }
@@ -108,5 +126,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

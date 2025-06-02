@@ -7,6 +7,7 @@
 <body>
   <h1>Sala: <%= roomId %></h1>
   <ul id="players"></ul>
+
   <button id="readyBtn">Pronto</button>
   <button id="startBtn" style="display:none;">Iniciar Jogo</button>
   <div id="roleInfo"></div>
@@ -14,6 +15,7 @@
   <script>
     const socket = io();
     const roomId = '<%= roomId %>';
+
     socket.emit('join-room', roomId);
 
     const playersEl = document.getElementById('players');
@@ -21,16 +23,29 @@
     const readyBtn = document.getElementById('readyBtn');
     const roleInfo = document.getElementById('roleInfo');
 
-    socket.on('players-updated', ({ players, owner }) => {
-      playersEl.innerHTML = players.map(p => `<li>${p === socket.id ? 'Você' : p}</li>`).join('');
-      if (owner === socket.id) {
-        startBtn.style.display = 'inline';
-      }
-    });
+    readyBtn.onclick = () => {
+      socket.emit('player-ready', roomId);
+      readyBtn.disabled = true;
+      readyBtn.innerText = 'Aguardando...';
+    };
 
     startBtn.onclick = () => {
       socket.emit('start-game', roomId);
     };
+
+    socket.on('players-updated', ({ players, ready, allReady }) => {
+      playersEl.innerHTML = players.map(p => {
+        const isYou = p === socket.id ? ' (você)' : '';
+        const isReady = ready[p] ? '✅' : '⏳';
+        return `<li>${p}${isYou} ${isReady}</li>`;
+      }).join('');
+
+      if (allReady) {
+        startBtn.style.display = 'inline';
+      } else {
+        startBtn.style.display = 'none';
+      }
+    });
 
     socket.on('game-started', () => {
       readyBtn.style.display = 'none';
@@ -39,9 +54,9 @@
 
     socket.on('role-assigned', ({ role, location }) => {
       if (role === 'spy') {
-        roleInfo.innerText = 'Você é o ESPIÃO. Descubra o local!';
+        roleInfo.innerText = '🕵️ Você é o ESPIÃO. Descubra o local!';
       } else {
-        roleInfo.innerText = `Local: ${location}`;
+        roleInfo.innerText = `📍 Local: ${location}`;
       }
     });
   </script>
