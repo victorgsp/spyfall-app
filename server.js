@@ -42,6 +42,40 @@ const LOCATIONS = [
   "Zoológico"
 ];
 
+const ROLES_BY_LOCATION = {
+  "Avião": ["Piloto", "Co-piloto", "Comissário(a)", "Passageiro(a)", "Passageiro(a)", "Passageiro(a)", "Comissário(a)"],
+  "Parque de diversões": ["Operador de brinquedo", "Palhaço", "Visitante", "Vendedor de pipoca", "Guarda", "Visitante", "Visitante"],
+  "Banco": ["Gerente", "Caixa", "Cliente", "Segurança", "Cliente", "Cliente", "Caixa"],
+  "Praia": ["Salva-vidas", "Banhista", "Vendedor ambulante", "Surfista", "Banhista", "Banhista", "Instrutor de mergulho"],
+  "Baile de máscaras": ["Convidado", "Segurança", "Músico", "Convidado", "Organizador", "Garçom", "Convidado"],
+  "Cassino": ["Funcionário que dar as cartas", "Segurança", "Jogador", "Gerente", "Barman", "Jogador", "Jogador"],
+  "Circo": ["Palhaço", "Malabarista", "Espectador", "Acrobata", "Mágico", "Espectador", "Espectador"],
+  "Festa da empresa": ["Funcionário", "Funcionário", "Funcionário", "Cônjuge de funcionário", "Cônjuge de funcionário", "Dono da empresa", "Garçom"],
+  "Exército de cruzados": ["Cavaleiro", "Arqueiro", "Capelão", "Ferreiro", "Escudeiro", "Recruta", "General"],
+  "Day spa": ["Massagista", "Cliente", "Recepcionista", "Esteticista", "Cliente", "Gerente", "Cliente"],
+  "Embaixada": ["Embaixador", "Diplomata", "Segurança", "Secretário", "Tradutor", "Convidado", "Motorista oficial"],
+  "Hospital": ["Médico", "Enfermeiro", "Paciente", "Paciente", "Recepcionista", "Visitante", "Faxineiro"],
+  "Hotel": ["Gerente", "Recepcionista", "Hóspede", "Camareira", "Segurança", "Hóspede", "Hóspede"],
+  "Base militar": ["General", "Soldado", "Médico de guerra", "Engenheiro", "Piloto", "Instrutor", "Cozinheiro do quartel"],
+  "Estúdio de cinema": ["Diretor", "Ator/Atriz", "Roteirista", "Cinegrafista", "Figurinista", "Maquiador", "Produtor"],
+  "Casa noturna": ["DJ", "Segurança", "Garçom", "Cliente", "Gerente", "Barman", "Dançarino(a)"],
+  "Transatlântico": ["Capitão", "Marinheiro", "Passageiro", "Passageiro", "Chef", "Músico", "Comissário de bordo"],
+  "Trem de passageiros": ["Maquinista", "Passageiro", "Fiscal", "Atendente do vagão", "Segurança", "Passageiro", "Passageiro"],
+  "Navio pirata": ["Capitão", "Imediato", "Canhoneiro", "Cozinheiro", "Marinheiro", "Prisioneiro", "Navegador"],
+  "Estação polar": ["Cientista", "Explorador", "Médico", "Piloto", "Cozinheiro", "Meteorologista", "Pesquisador de campo"],
+  "Delegacia": ["Delegado", "Detetive", "Policial", "Presidiário", "Escrivão", "Inspetor", "Vítima"],
+  "Restaurante": ["Chef", "Garçom", "Cliente", "Gerente", "Auxiliar de cozinha", "Sommelier", "Limpador de pratos"],
+  "Escola": ["Professor", "Diretor", "Aluno", "Aluno", "Aluno", "Secretária", "Bibliotecário"],
+  "Oficina": ["Mecânico", "Cliente", "Gerente", "Estagiário", "Eletricista", "Pintor", "Atendente"],
+  "Estação espacial": ["Comandante", "Engenheiro", "Cientista", "Piloto", "Médico", "Operador de comunicação", "Botânico"],
+  "Submarino": ["Capitão", "Operador de sonar", "Engenheiro naval", "Torpedista", "Oficial de comunicações", "Cozinheiro", "Mergulhador"],
+  "Supermercado": ["Caixa", "Gerente", "Cliente", "Repositor", "Segurança", "Promotor de vendas", "Estoquista"],
+  "Teatro": ["Ator/Atriz", "Diretor", "Contra-regra", "Cenógrafo", "Maquiador", "Plateia", "Iluminador"],
+  "Universidade": ["Professor", "Aluno", "Bibliotecário", "Reitor", "Zelador", "Pesquisador", "Aluno"],
+  "Zoológico": ["Zelador de animais", "Veterinário", "Visitante", "Guia", "Segurança", "Biólogo", "Alimentador de animais"]
+};
+
+
 
 app.get('/', (req, res) => {
   const roomId = uuidv4().slice(0, 6);
@@ -96,15 +130,29 @@ io.on('connection', (socket) => {
       const spyIndex = Math.floor(Math.random() * game.players.length);
       const location = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
 
-      game.players.forEach((playerId, index) => {
-        const role = index === spyIndex ? 'spy' : location;
-        game.roles[playerId] = role;
+      const nonSpies = [...game.players];
+      nonSpies.splice(spyIndex, 1);
 
-        io.to(playerId).emit('role-assigned', {
-          role,
-          location: index === spyIndex ? null : location,
-        });
+      const rolesForLocation = ROLES_BY_LOCATION[location] || [];
+      const shuffledRoles = rolesForLocation.sort(() => 0.5 - Math.random());
+
+      game.players.forEach((playerId, index) => {
+        if (index === spyIndex) {
+          game.roles[playerId] = 'spy';
+          io.to(playerId).emit('role-assigned', {
+            role: 'spy',
+            location: null,
+          });
+        } else {
+          const playerRole = shuffledRoles.pop() || location;
+          game.roles[playerId] = playerRole;
+          io.to(playerId).emit('role-assigned', {
+            role: playerRole,
+            location,
+          });
+        }
       });
+
 
       io.to(roomId).emit('game-started');
     }
