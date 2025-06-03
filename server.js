@@ -158,7 +158,6 @@ io.on('connection', (socket) => {
     if (game && !game.started) {
       const allReady = game.players.every(playerId => game.ready[playerId]);
       if (!allReady) return; // Bloqueia início se alguém não estiver pronto
-      console.log("Random: ", Math.random())
       game.started = true;
       const spyIndex = Math.floor(Math.random() * game.players.length);
       const location = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
