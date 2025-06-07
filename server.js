@@ -119,7 +119,7 @@ app.get('/', (req, res) => {
 app.get('/:roomId', (req, res) => {
   const { roomId } = req.params;
   if (!games[roomId]) {
-    games[roomId] = { players: [], started: false, ready: {}, roles: {} };
+    games[roomId] = { players: [], started: false, ready: {}, roles: {}, reshuffleRequests: {} };
   }
   res.render('lobby', { roomId });
 });
@@ -190,6 +190,46 @@ io.on('connection', (socket) => {
       io.to(roomId).emit('game-started');
     }
   });
+
+  socket.on('request-reshuffle', (roomId) => {
+    const game = games[roomId];
+    if (!game || !game.started) return;
+
+    game.reshuffleRequests[socket.id] = true;
+
+    const allAgreed = game.players.every(p => game.reshuffleRequests[p]);
+    if (allAgreed) {
+      // Realiza novo sorteio
+      const spyIndex = Math.floor(Math.random() * game.players.length);
+      const location = LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
+      const nonSpies = [...game.players];
+      nonSpies.splice(spyIndex, 1);
+
+      const rolesForLocation = ROLES_BY_LOCATION[location] || [];
+      const shuffledRoles = rolesForLocation.sort(() => 0.5 - Math.random());
+
+      game.players.forEach((playerId, index) => {
+        if (index === spyIndex) {
+          game.roles[playerId] = 'spy';
+          io.to(playerId).emit('role-assigned', {
+            role: 'spy',
+            location: null,
+          });
+        } else {
+          const playerRole = shuffledRoles.pop() || location;
+          game.roles[playerId] = playerRole;
+          io.to(playerId).emit('role-assigned', {
+            role: playerRole,
+            location,
+          });
+        }
+      });
+
+      game.reshuffleRequests = {}; // zera novamente
+      io.to(roomId).emit('game-started'); // reativa o botão
+    }
+  });
+
 
   socket.on('disconnecting', () => {
     for (const roomId of socket.rooms) {

@@ -35,6 +35,7 @@
             <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
               <button id="readyBtn" class="btn btn-success">Pronto</button>
               <button id="startBtn" class="btn btn-primary" style="display: none;">Iniciar Jogo</button>
+              <button id="reshuffleBtn" class="btn btn-warning" style="display: none;">🔄 Sortear novamente</button>
             </div>
 
             <!-- Papel e local -->
@@ -83,7 +84,16 @@
     socket.on('game-started', () => {
       readyBtn.style.display = 'none';
       startBtn.style.display = 'none';
+      reshuffleBtn.style.display = 'inline-block';
+      reshuffleBtn.disabled = false;
+      reshuffleBtn.innerText = '🔄 Sortear novamente';
     });
+
+    reshuffleBtn.onclick = () => {
+      socket.emit('request-reshuffle', roomId);
+      reshuffleBtn.disabled = true;
+      reshuffleBtn.innerText = 'Aguardando...';
+    };
 
     socket.on('role-assigned', ({ role, location }) => {
       roleInfo.style.display = 'block';
